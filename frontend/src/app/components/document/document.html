@@ -1,0 +1,184 @@
+<div class="document-sheet" [ngClass]="'theme-' + invitation().theme" [ngStyle]="docStyles()">
+  <div class="doc-frame" [ngClass]="'status-' + (invitation().status || 'pending')">
+    
+    <!-- Watermark Stamp -->
+    <div class="watermark-stamp">
+      @if (invitation().status === 'accepted') {
+        RECIBIDO - ASISTE
+      } @else if (invitation().status === 'declined') {
+        RECHAZADO - NO ASISTE
+      } @else {
+        PENDIENTE FIRMA
+      }
+    </div>
+
+    <!-- 1. Header Grid -->
+    <div class="doc-header-grid">
+      <!-- Middle Letter Box -->
+      <div class="doc-type-box">
+        <div class="doc-type-letter">
+          {{ invitation().type === 'orden' ? 'OC' : 'R' }}
+        </div>
+        <div class="doc-type-subtitle">
+          {{ invitation().type === 'orden' ? 'ORDEN COMPRA' : 'REMITO' }}
+        </div>
+      </div>
+      
+      <div class="doc-type-notice">DOCUMENTO NO VÁLIDO COMO FACTURA</div>
+      
+      <div class="doc-type-copy">
+        @if (invitation().status === 'accepted') {
+          DUPLICADO (RECEPCIÓN FIRMADA)
+        } @else {
+          ORIGINAL
+        }
+      </div>
+
+      <!-- Left Header: Emisor Info -->
+      <div class="header-left" style="display: flex; flex-direction: column; justify-content: flex-start;">
+        <div class="flex gap-2 align-center mb-1" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap;">
+          @if (invitation().emisor.logo) {
+            <img [src]="invitation().emisor.logo" alt="Logo Emisor" style="height: 30px; max-width: 60px; object-fit: contain; border-radius: 2px; background: white; padding: 2px; border: 0.5px solid var(--doc-border);">
+          }
+          <div class="emisor-title">{{ invitation().emisor.company || invitation().emisor.name }}</div>
+        </div>
+        <div>De: {{ invitation().emisor.name }}</div>
+        <div>Dir: {{ invitation().emisor.address || 'Oficina Central' }}</div>
+        <div>Email: {{ invitation().emisor.email }}</div>
+        <div>CUIT: {{ invitation().emisor.cuit || '99-99999999-9' }}</div>
+        <div>I.V.A.: Responsable Inscripto</div>
+      </div>
+
+      <!-- Right Header: Document details -->
+      <div class="header-right">
+        <div class="doc-meta-title">
+          {{ invitation().type === 'orden' ? 'ORDEN DE COMPRA' : 'REMITO DE VENTA' }}
+        </div>
+        <div class="doc-meta-num">N° {{ invitation().docNumber }}</div>
+        <div>Fecha: {{ formatSimpleDate(invitation().createdAt || '') }}</div>
+        <div>Fecha Evento: {{ formatDate(invitation().eventDate) }}</div>
+        <div>CUIT Emisor: {{ invitation().emisor.cuit || '99-99999999-9' }}</div>
+        <div>I.B.: 99-999999-9 (Exento)</div>
+      </div>
+    </div>
+
+    <!-- 2. Receptor (Client) Block -->
+    <div class="receptor-box">
+      <div class="receptor-header">RECEPTOR / DESTINATARIO:</div>
+      <div>Señor/es: <strong>{{ invitation().receptor.name }}</strong> ({{ invitation().receptor.company || 'Particular' }})</div>
+      <div>Domicilio: {{ invitation().receptor.address || 'Oficinas de Equipo' }}</div>
+      <div>Email: {{ invitation().receptor.email }}</div>
+      <div class="flex justify-between w-full">
+        <span>CUIT: {{ invitation().receptor.cuit || 'Consumidor Final' }}</span>
+        <span>Cond. IVA: Consumidor Final</span>
+      </div>
+    </div>
+
+    <!-- Commercial Conditions (Very Realistic) -->
+    <div style="margin: 0 10px 10px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: calc(8.5px * var(--doc-font-scale, 1.0)); padding: 6px; border: 1px solid var(--doc-border); border-radius: 4px; background: var(--doc-header-bg);">
+      <div><strong>Condición de Venta:</strong> [ ] Contado &nbsp;&nbsp; [ ] Cta. Cte. &nbsp;&nbsp; [x] Invitación Especial</div>
+      <div><strong>Transporte / Logística:</strong> [x] Sin Cargo &nbsp;&nbsp; [ ] Retira Destinatario</div>
+    </div>
+
+    <!-- 3. Items Table -->
+    <div class="items-table-container">
+      <!-- Headers -->
+      <div class="table-row table-header">
+        <div class="col-qty">Cant.</div>
+        <div class="col-desc">Detalle / Descripción del Concepto</div>
+        <div class="col-price">P. Unitario</div>
+        <div class="col-total">Importe</div>
+      </div>
+
+      <!-- Rows -->
+      <div class="table-body">
+        @for (item of invitation().items; track $index; let odd = $odd) {
+          <div class="table-row" [style.background-color]="odd ? 'var(--doc-header-bg)' : 'transparent'">
+            <div class="col-qty">{{ item.qty }}</div>
+            <div class="col-desc">{{ item.description }}</div>
+            <div class="col-price">
+              {{ item.unitPrice > 0 ? (item.unitPrice | currency:'USD':'symbol':'1.2-2') : 'GRATIS' }}
+            </div>
+            <div class="col-total">
+              {{ (item.qty * item.unitPrice) > 0 ? ((item.qty * item.unitPrice) | currency:'USD':'symbol':'1.2-2') : 'INVALUABLE' }}
+            </div>
+          </div>
+        }
+        
+        <!-- Fill Empty Space to preserve layout height -->
+        <div style="flex-grow: 1;"></div>
+      </div>
+
+      <!-- Total Summary Row -->
+      <div class="table-row table-total-row">
+        <div class="total-label">TOTAL DE LA INVITACIÓN:</div>
+        <div class="total-text-right">Importe Total:</div>
+        <div class="total-val">
+          {{ totalAmount() > 0 ? (totalAmount() | currency:'USD':'symbol':'1.2-2') : 'SONRISAS / $0.00' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Footer Block: Comments & Signatures -->
+    <div class="doc-footer-grid">
+      <!-- Comments / Rules -->
+      <div class="footer-comments">
+        <div class="footer-comments-title">NOTAS / CONDICIONES GENERALES:</div>
+        <div class="footer-comments-text" style="font-size: calc(7.5px * var(--doc-font-scale, 1.0));">
+          {{ invitation().comments || 'Al firmar este remito, el receptor se compromete a asistir al evento y a traer buena actitud. El emisor no se responsabiliza por sobredosis de medialunas u otros insumos del break.' }}
+        </div>
+        
+        <!-- Transport / CAI details inside comments box -->
+        <div style="margin-top: auto; border-top: 1px dotted var(--doc-border); padding-top: 4px; display: grid; grid-template-columns: 1.2fr 0.8fr; font-size: calc(6.5px * var(--doc-font-scale, 1.0)); opacity: 0.8;">
+          <div>
+            <strong>Flete:</strong> POTENCIAPP Logística S.A.<br>
+            <strong>Patente:</strong> AAA-999-PP
+          </div>
+          <div style="text-align: right;">
+            <strong>CAI N°:</strong> 42026159846271<br>
+            <strong>Vto. CAI:</strong> 31/12/2026
+          </div>
+        </div>
+      </div>
+
+      <!-- Conforme Receptor Signature Pad -->
+      <div class="footer-signature-box">
+        <div class="signature-label">CONFORME RECEPTOR:</div>
+        
+        @if (invitation().status === 'accepted') {
+          @if (invitation().signature) {
+            <img [src]="invitation().signature" alt="Firma del receptor" class="signature-display-img" />
+          } @else {
+            <div style="margin: auto 0; font-family: 'Courier New', monospace; font-weight: bold; color: green; font-size: 10px; text-align: center;">
+              / CONFIRMADO ASISTE /
+            </div>
+          }
+          <div style="font-size: 7px; color: #4a5568; margin-top: auto;">
+            Aclaración: {{ invitation().receptor.name }}<br>
+            Firma Electrónica Autorizada
+          </div>
+        } @else if (invitation().status === 'declined') {
+          <div class="signature-declined-box">
+            <span>X RECHAZADO / NO ASISTE</span>
+            <span class="signature-declined-reason" [title]="invitation().rejectionReason || ''">
+              Motivo: {{ invitation().rejectionReason || 'No especificado' }}
+            </span>
+          </div>
+        } @else {
+          <!-- Empty line waiting for physical or digital drawing -->
+          <div class="signature-line-placeholder"></div>
+          <div class="signature-label-placeholder">Firma y Aclaración</div>
+        }
+      </div>
+    </div>
+
+    <!-- 5. Barcode replica -->
+    <div class="barcode-replica-container">
+      <div class="barcode-stripes"></div>
+      <div class="barcode-text">
+        C.O.T. N° 42026{{ invitation().createdAt ? (invitation().createdAt | date:'MMdd') : '0528' }}{{ invitation().docNumber }}
+      </div>
+    </div>
+
+  </div>
+</div>

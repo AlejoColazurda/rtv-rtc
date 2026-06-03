@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -179,18 +180,22 @@ func handleInvitationPDF(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/pdf")
+	// Render into a buffer first so a generation failure returns a clean error
+	// instead of streaming a half-written / 0-byte file to the client.
+	var buf bytes.Buffer
+	if err := GenerateInvitationPDF(inv, &buf); err != nil {
+		log.Printf("Error generating PDF for %s: %v", id, err)
+		writeJSONError(w, "Failed to generate PDF", http.StatusInternalServerError)
+		return
+	}
+
 	filename := "remito_" + inv.DocNumber + ".pdf"
 	if inv.Type == "orden" {
 		filename = "orden_compra_" + inv.DocNumber + ".pdf"
 	}
+	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", "attachment; filename="+filename)
-
-	err = GenerateInvitationPDF(inv, w)
-	if err != nil {
-		log.Printf("Error generating PDF for %s: %v", id, err)
-		// Since headers might already be written, we log.
-	}
+	w.Write(buf.Bytes())
 }
 
 // handleUpdateInvitation handles PUT /api/invitations/{id}

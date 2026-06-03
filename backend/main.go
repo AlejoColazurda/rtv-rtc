@@ -17,25 +17,20 @@ func main() {
 		port = "8080"
 	}
 
+	const placeholderDBURL = "postgresql://postgres:your_password@db.supabase.co:5432/postgres?sslmode=require"
 	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" || dbURL == "postgresql://postgres:your_password@db.supabase.co:5432/postgres?sslmode=require" {
-		log.Println("WARNING: DATABASE_URL environment variable is empty or is set to default placeholders.")
-		log.Println("Please update backend/.env with your actual Supabase PostgreSQL connection string!")
-		log.Println("Example format: postgresql://postgres:[your-password]@[your-supabase-host]:5432/postgres?sslmode=require")
-	}
 
-	// Initialize database connection
-	var err error
-	if dbURL != "" && dbURL != "postgresql://postgres:your_password@db.supabase.co:5432/postgres?sslmode=require" {
-		_, err = InitDB(dbURL)
-		if err != nil {
-			log.Printf("ERROR: Failed to connect to database: %v", err)
-			log.Println("FALLBACK: Starting in LOCAL FALLBACK MODE (saving data locally in backend/data/invitations.json)!")
-			useLocalFallback = true
-		}
-	} else {
-		log.Println("WARNING: No DATABASE_URL provided or using placeholders.")
-		log.Println("FALLBACK: Starting in LOCAL FALLBACK MODE (saving data locally in backend/data/invitations.json)!")
+	// Decide storage backend. An empty/placeholder DATABASE_URL is a valid,
+	// intentional configuration: the app runs in LOCAL mode and persists data
+	// to backend/data/invitations.json. The whole circuit (CRUD, RSVP, PDF)
+	// works the same in either mode.
+	if dbURL == "" || dbURL == placeholderDBURL {
+		log.Println("LOCAL mode: no DATABASE_URL set — data is stored in backend/data/invitations.json.")
+		log.Println("To use Supabase instead, set DATABASE_URL in backend/.env and restart.")
+		useLocalFallback = true
+	} else if _, err := InitDB(dbURL); err != nil {
+		log.Printf("WARNING: could not connect to the database: %v", err)
+		log.Println("FALLBACK: continuing in LOCAL mode — data is stored in backend/data/invitations.json.")
 		useLocalFallback = true
 	}
 
@@ -60,8 +55,7 @@ func main() {
 	})
 
 	log.Printf("Server starting on port %s...", port)
-	err = http.ListenAndServe(":"+port, mux)
-	if err != nil {
+	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Critical: Server failed to start: %v", err)
 	}
 }

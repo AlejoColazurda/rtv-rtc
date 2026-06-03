@@ -1,0 +1,9 @@
+# Local build scratch (the tracked, ready-to-run binary is backend/backend.exe)
+backend/backend_local.exe
+
+# Local env overrides
+backend/.env.local
+
+# OS / editor
+.DS_Store
+Thumbs.db

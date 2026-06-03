@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
+	"image/png"
 	"io"
 	"math"
 	"os"
@@ -520,6 +522,14 @@ func writeBase64Image(b64Str string) (string, error) {
 
 	dec, err := base64.StdEncoding.DecodeString(b64Str)
 	if err != nil {
+		return "", err
+	}
+
+	// Validate the bytes are a decodable PNG before handing them to the PDF
+	// engine. An invalid image would otherwise set an internal error on the
+	// PDF object and make Output() write a 0-byte file. Returning an error here
+	// makes the caller fall back to the textual "/ FIRMADO CONFORME /" stamp.
+	if _, err := png.Decode(bytes.NewReader(dec)); err != nil {
 		return "", err
 	}
 

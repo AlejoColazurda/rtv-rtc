@@ -1,5 +1,85 @@
 [
   {
+    "id": "3a7e0c0f-1d2b-4e5a-9c6d-0f1a2b3c4d5e",
+    "type": "orden",
+    "docNumber": "0001-MATE26",
+    "emisor": {
+      "name": "Alejo Colazurda",
+      "company": "POTENCIAPP",
+      "cuit": "30-71452968-3",
+      "address": "Donde caliente el agua, CABA",
+      "email": "colazurdaalejo@potenciapp.com",
+      "logo": ""
+    },
+    "receptor": {
+      "name": "Cristian Pereyra",
+      "company": "",
+      "cuit": "20-00000000-0",
+      "address": "Ahí nomás, traé las ganas",
+      "email": "",
+      "logo": ""
+    },
+    "eventDate": "2026-06-07T17:00:00Z",
+    "items": [
+      {
+        "qty": 1,
+        "description": "Mate curado y listo para la ronda",
+        "unitPrice": 0,
+        "total": 0
+      },
+      {
+        "qty": 1,
+        "description": "Bombilla que no se tapa (palabra)",
+        "unitPrice": 0,
+        "total": 0
+      },
+      {
+        "qty": 1,
+        "description": "Termo con agua a 75°C, ni un grado más",
+        "unitPrice": 0,
+        "total": 0
+      },
+      {
+        "qty": 500,
+        "description": "Gramos de yerba (sin palo, como te gusta)",
+        "unitPrice": 0,
+        "total": 0
+      },
+      {
+        "qty": 12,
+        "description": "Bizcochitos de grasa para acompañar",
+        "unitPrice": 0,
+        "total": 0
+      },
+      {
+        "qty": 90,
+        "description": "Minutos de charla y mirar el horizonte",
+        "unitPrice": 0,
+        "total": 0
+      }
+    ],
+    "comments": "Al firmar esta invitación, el receptor se compromete a cebar parejo, no dejar el mate lavado y a no decir 'gracias' hasta que no quiera más. ¡Te espero para unos matecitos!",
+    "theme": "coffee",
+    "status": "pending",
+    "signature": "",
+    "rejectionReason": "",
+    "layout": {
+      "pageSize": "A4",
+      "widthMm": 210,
+      "heightMm": 297,
+      "marginTop": 10,
+      "marginBottom": 10,
+      "marginLeft": 10,
+      "marginRight": 10,
+      "colQtyWidth": 15,
+      "colDescWidth": 50,
+      "colPriceWidth": 18,
+      "colTotalWidth": 17,
+      "fontSizeScale": 1
+    },
+    "createdAt": "2026-06-03T12:00:00-03:00"
+  },
+  {
     "id": "aec8f0c9-022c-f5b8-59bf-0df1f69a6f6c",
     "type": "orden",
     "docNumber": "0001-231039",
